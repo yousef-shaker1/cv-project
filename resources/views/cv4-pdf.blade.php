@@ -27,14 +27,14 @@
 
         .address{
             margin-top: -40px;
-            margin-left: 270px;
+            margin-left: 250px;
             margin-bottom: 10px;
             color:rgb(35, 163, 163);
         }
         
         .email{
             margin-top: -40px;
-            margin-left: 210px;
+            margin-left: 270px;
             
         }
         .email a {
@@ -222,29 +222,29 @@
         <div class="header d-flex justify-content-between align-items-start mb-4">
             <div class="name-info">
                 <h1><strong>
-                    @if($first_name) {{ $first_name }} @endif
-                    @if($middel_name) {{ $middel_name }} @endif
-                    @if($Family_name) {{ $Family_name }} @endif
+                    @if(!empty($first_name)) {{ $first_name }} @endif
+                    @if(!empty($middel_name)) {{ $middel_name }} @endif
+                    @if(!empty($Family_name)) {{ $Family_name }} @endif
                 </strong></h1>
                 <h3>
-                    @if($career_job) {{ $career_job }} @endif
+                    @if(!empty($career_job)) {{ $career_job }} @endif
                 </h3>
                 <hr>
                 <div class='address'>
-                    @if($county && $address)
+                    @if(!empty($county && $address))
                 <p>{{ $address }} - {{ $county }}</p>
                 @endif
                 </div>
                 <div class='email'>
                     <div class="contact-info text-right">
-                        @if($email)
+                        @if(!empty($email))
                     <p><a href="mailto:{{ $email }}">{{ $email }}</a></p>
                     @endif
                     </div>
                 </div>
                 <div class='phone'>
                     <div class="contact-info text-right">
-                        @if($phone)
+                        @if(!empty($phone))
                         <p><a href="tel:+{{ $phone }}">{{ $phone }}</a></p>
                         @endif
                     </div>
@@ -256,7 +256,7 @@
         <div class="summary mb-4">
             <div class='Summary'>
                 <h2>Professional Summary</h2>
-                @if($Summary)
+                @if(!empty($Summary))
                 <p><strong>{{ $Summary }}</strong></p>
             </div>
             @endif
@@ -361,13 +361,28 @@
             <div class='edu'>
             <h2>Education:</h2>
             <hr>
-            @if($University_name && $start_date_month_university)
-            <p><strong>Institute:</strong> {{ $University_name }} ({{ $start_date_month_university }} {{ $start_date_year_university }} - {{ $end_date_month_university }} {{ $end_date_year_university }})</p>
-            @endif
-            @if($MAJOR)
+            <p>
+            @if(!empty($University_name))
+                <strong>Institute:</strong> {{ $University_name }} 
+                @endif
+                @if(!empty($start_date_month_university))
+                ({{ $start_date_month_university }} 
+                @endif
+                
+                @if(!empty($start_date_year_university))
+                {{ $start_date_year_university }} - 
+                @endif
+                @if(!empty($end_date_month_university))
+                {{ $end_date_month_university }} 
+                @endif
+                @if(!empty($end_date_year_university))
+                {{ $end_date_year_university }})
+                @endif
+            </p>
+            @if(!empty($MAJOR))
             <p><strong>Major:</strong> {{ $MAJOR }}</p>
             @endif
-            @if($university_year)
+            @if(!empty($university_year))
             <p><strong>Year:</strong> {{ $university_year }}</p>
             @endif
         </div>

@@ -16,105 +16,68 @@ class ImageController extends Controller
     }
     public function generateCV(Request $request)
     {
-        // البيانات الواردة من النموذج
-        $data = $request->all();
-        //ارسال skills array
-        if (isset($data['skills'])) {
-            $data['skills'] = array_map('trim', explode(',', $data['skills']));
-        }
-        //تحويل الشهر من رقم اللي اسم
-        if(isset($data["start_date_month"])){
-            $monthNumber = intval($data['start_date_month']);
-            $date = Carbon::createFromFormat('!m', $monthNumber);
-            $monthName = $date->format('F');
-            $data['start_date_month'] = $monthName;
-            $monthNumber = $data['start_date_month'];
-        $monthName = '';
-        if ($monthNumber) {
-            $date = DateTime::createFromFormat('!m', $monthNumber);
-            $monthName = $date ? $date->format('F') : '';
-        }
-        }
-        //لما يكون في check يعمل التاريخ readonly و يبعت كلمة present مكان التاريخ
-        if(isset($data['currently_working'])){
-            $data['end_date_month'] = '';
-            $data['end_date_year'] = 'present';
-        } elseif(isset($data["start_date_month"])) {
-            $monthNumber = intval($data['end_date_month']);
-            $date = Carbon::createFromFormat('!m', $monthNumber);
-            $monthName = $date->format('F');
-            $data['end_date_month'] = $monthName;
-        }
-        //تحويل الشهر من رقم اللي اسم
-        if (isset($data['start_date_month2'])) {
-            $monthNumber = intval($data['start_date_month2']);
-            $data['start_date_month2'] = Carbon::create()->month($monthNumber)->format('F');
-        }
-        if (isset($data['end_date_month2'])) {
-            $monthNumber = intval($data['end_date_month2']);
-            $data['end_date_month2'] = Carbon::create()->month($monthNumber)->format('F');
-        }
-        if (isset($data['start_date_month3'])) {
-            $monthNumber = intval($data['start_date_month3']);
-            $data['start_date_month3'] = Carbon::create()->month($monthNumber)->format('F');
-        }
-        if (isset($data['end_date_month3'])) {
-            $monthNumber = intval($data['end_date_month3']);
-            $data['end_date_month3'] = Carbon::create()->month($monthNumber)->format('F');
-        }
-        //تحويل الشهر من رقم الي اسم
-        if(isset($data["start_date_month_university"])){
-            $monthNumber = intval($data['start_date_month_university']);
-            $date = Carbon::createFromFormat('!m', $monthNumber);
-            $monthName = $date->format('F');
-            $data['start_date_month_university'] = $monthName;
-            $monthNumber = $data['start_date_month'];
-        $monthName = '';
-        if ($monthNumber) {
-            $date = DateTime::createFromFormat('!m', $monthNumber);
-            $monthName = $date ? $date->format('F') : '';
-        }
-        }
-        //university_data لو المستخدم سة طلب يبوعت كلمة I am still a student
-        if(isset($data['currently_working_university'])){
-            $data['end_date_month_university'] = 'I am still a student';
-            $data['end_date_year_university'] = '';
-        } elseif(isset($data["start_date_month_university"])) {
-            $monthNumber = intval($data['end_date_month_university']);
-            $date = Carbon::createFromFormat('!m', $monthNumber);
-            $monthName = $date->format('F');
-            $data['end_date_month_university'] = $monthName;
-        }
 
-        
+// البيانات الواردة من النموذج
+$data = $request->all();
 
-        // تحقق من وجود المجلد وأنشئه إذا لزم الأمر
-        $pdfDirectory = storage_path('app/public/cvs');
-        if (!is_dir($pdfDirectory)) {
-            mkdir($pdfDirectory, 0775, true);
-        }
+// إرسال skills array
+if (isset($data['skills'])) {
+    $data['skills'] = array_map('trim', explode(',', $data['skills']));
+}
 
-        if($request->selectedTheme =='cv1'){
-            $pdf = Pdf::loadView('cv-pdf', $data);
-        } elseif($request->selectedTheme =='cv2') {
-            $pdf = Pdf::loadView('cv2-pdf', $data);
-        } elseif($request->selectedTheme =='cv3') {
-            $pdf = Pdf::loadView('cv3-pdf', $data);
-        } elseif($request->selectedTheme =='cv4') {
-            $pdf = Pdf::loadView('cv4-pdf', $data);
-        }
+// تحويل الشهور من أرقام إلى أسماء
+$convertMonthNumberToName = function ($monthNumber) {
+    return Carbon::createFromFormat('!m', $monthNumber)->format('F');
+};
 
-        // إعداد بيانات السيرة الذاتية
-        
-        // تحديد اسم الملف وتخزين PDF
-        $filename = 'cv_' . time() . '.pdf';
-        $path = 'public/cvs/' . $filename;
-        $pdf->save(storage_path('app/' . $path));
+// تحويل الشهور إذا كانت موجودة
+foreach (['start_date_month', 'end_date_month', 'start_date_month2', 'end_date_month2', 'start_date_month3', 'end_date_month3', 'start_date_month_university', 'end_date_month_university'] as $field) {
+    if (isset($data[$field])) {
+        $monthNumber = intval($data[$field]);
+        $data[$field] = $convertMonthNumberToName($monthNumber);
+    }
+}
 
-        // إنشاء رابط PDF
-        $pdfUrl = Storage::url($path);
+// التحقق من الحقول الخاصة بـ currently_working
+if (isset($data['currently_working'])) {
+    $data['end_date_month'] = '';
+    $data['end_date_year'] = 'present';
+}
 
-        // عرض النتائج
-        return view('cv-result', compact('pdfUrl'));
+if (isset($data['currently_working_university'])) {
+    $data['end_date_month_university'] = 'I am still a student';
+    $data['end_date_year_university'] = '';
+}
+
+// تحقق من وجود المجلد وأنشئه إذا لزم الأمر
+$pdfDirectory = storage_path('app/public/cvs');
+if (!is_dir($pdfDirectory)) {
+    mkdir($pdfDirectory, 0775, true);
+}
+
+// اختيار القالب المناسب بناءً على theme
+$themeViews = [
+    'cv1' => 'cv-pdf',
+    'cv2' => 'cv2-pdf',
+    'cv3' => 'cv3-pdf',
+    'cv4' => 'cv4-pdf'
+];
+
+$selectedTheme = $request->selectedTheme;
+$pdfView = isset($themeViews[$selectedTheme]) ? $themeViews[$selectedTheme] : 'cv-pdf';
+
+$pdf = Pdf::loadView($pdfView, $data);
+
+// إعداد اسم الملف وتخزين PDF
+$filename = 'cv_' . time() . '.pdf';
+$path = 'public/cvs/' . $filename;
+$pdf->save(storage_path('app/' . $path));
+
+// إنشاء رابط PDF
+$pdfUrl = Storage::url($path);
+
+// عرض النتائج
+return view('cv-result', compact('pdfUrl'));
+
     }
 }
